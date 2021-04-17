@@ -1,0 +1,27 @@
+name: Testing Master
+on: 
+  push:
+    branches: [master]
+  pull_requests:
+    branches: [master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install Dependencies
+      run: sudo apt update
+      run: sudo apt -y install libpugixml-dev python3-venv libboost-program-options-dev libboost-system-dev libzmq3-dev build-essentials cmake
+    - name: Build SystemC
+      run: mkdir systemc
+      run: wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz
+      run: tar -xf systemc-2.3.3.tar.gz
+      run: cd systemc-2.3.3
+      run: mkdir objdir
+      run: cd objdir
+      run: ../configure --prefix=/usr/local/systemc-2.3.3 --enable-static CXXFLAGS="-std=c++17"
+      run: make -j
+      run: sudo mkdir /usr/local/systemc-2.3.3
+      run: sudo make install
+      run: cd ../..
