@@ -19,9 +19,9 @@ jobs:
     - name: Build SystemC  
       run: cd systemc-2.3.3 && mkdir objdir && cd objdir && ../configure --prefix=/usr/local/systemc-2.3.3 --enable-static CXXFLAGS="-std=c++17" && make -j && sudo mkdir /usr/local/systemc-2.3.3 && sudo make install && cd ../..
     - name: Set environment
-      run: export SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1 && cd simulator
+      run: export SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1
     - name: Build Ratatoskr Simulator
-      run: ./build.sh && cd ..
+      run: cd simulator && ./build.sh && cd ..
     - name: Urand Test
       run: cd tests/urand && ./run.sh && cd ../..
     - name: Netrace Test
