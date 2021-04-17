@@ -18,3 +18,13 @@ jobs:
       run: mkdir systemc && wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz && tar -xf systemc-2.3.3.tar.gz
     - name: Build SystemC  
       run: cd systemc-2.3.3 && mkdir objdir && cd objdir && ../configure --prefix=/usr/local/systemc-2.3.3 --enable-static CXXFLAGS="-std=c++17" && make -j && sudo mkdir /usr/local/systemc-2.3.3 && sudo make install && cd ../..
+    - name: Set environment
+      run: export SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1 && cd simulator
+    - name: Build Ratatoskr Simulator
+      run: ./build.sh && cd ..
+    - name: Urand Test
+      run: cd tests/urand && ./run.sh && cd ../..
+    - name: Netrace Test
+      run: cd tests/netrace && make && source source_me.sh && python bench.py && cd ..
+    - name: Routing Table Test
+      run: cd tests/routing-table && ./run.sh
