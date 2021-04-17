@@ -10,18 +10,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Install Dependencies
+    - name: Update Ubuntu
       run: sudo apt update
+    - name: Install Dependencies
       run: sudo apt -y install libpugixml-dev python3-venv libboost-program-options-dev libboost-system-dev libzmq3-dev build-essentials cmake
-    - name: Build SystemC
-      run: mkdir systemc
-      run: wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz
-      run: tar -xf systemc-2.3.3.tar.gz
-      run: cd systemc-2.3.3
-      run: mkdir objdir
-      run: cd objdir
-      run: ../configure --prefix=/usr/local/systemc-2.3.3 --enable-static CXXFLAGS="-std=c++17"
-      run: make -j
-      run: sudo mkdir /usr/local/systemc-2.3.3
-      run: sudo make install
-      run: cd ../..
+    - name: Get SystemC
+      run: mkdir systemc && wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz && tar -xf systemc-2.3.3.tar.gz
+    - name: Build SystemC  
+      run: cd systemc-2.3.3 && mkdir objdir && cd objdir && ../configure --prefix=/usr/local/systemc-2.3.3 --enable-static CXXFLAGS="-std=c++17" && make -j && sudo mkdir /usr/local/systemc-2.3.3 && sudo make install && cd ../..
