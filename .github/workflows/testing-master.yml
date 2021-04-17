@@ -13,7 +13,7 @@ jobs:
     - name: Update Ubuntu
       run: sudo apt update
     - name: Install Dependencies
-      run: sudo apt -y install libpugixml-dev python3-venv libboost-program-options-dev libboost-system-dev libzmq3-dev build-essentials cmake
+      run: sudo apt -y install libpugixml-dev python3-venv libboost-program-options-dev libboost-system-dev libzmq3-dev build-essential cmake
     - name: Get SystemC
       run: mkdir systemc && wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz && tar -xf systemc-2.3.3.tar.gz
     - name: Build SystemC  
