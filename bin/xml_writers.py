@@ -340,7 +340,7 @@ class NetworkWriter(Writer):
             z += 1
             nodeType_id += 1
 
-    def make_port(self, ports_node, port_id, node_id):
+    def make_port(self, ports_node, port_id, node_id, vcCount):
         port_node = ET.SubElement(ports_node, 'port')
         port_node.set('id', str(port_id))
         node_node = ET.SubElement(port_node, 'node')
@@ -350,7 +350,7 @@ class NetworkWriter(Writer):
         buffersDepths_node = ET.SubElement(port_node, 'buffersDepths')
         buffersDepths_node.set('value', str(self.config.buffersDepths))
         vcCount_node = ET.SubElement(port_node, 'vcCount')
-        vcCount_node.set('value', str(self.config.vcCount))
+        vcCount_node.set('value', str(vcCount))
 
     def make_con(self, connections_node, con_id, src_node, dst_node):
         #print("binding " + str(src_node) + " to " + str(dst_node))
@@ -381,26 +381,45 @@ class NetworkWriter(Writer):
         #interface_node = ET.SubElement(con_node, 'interface')
         #interface_node.set('value', str(0))
         ports_node = ET.SubElement(con_node, 'ports')
-        self.make_port(ports_node, 0, src_node)
-        self.make_port(ports_node, 1, dst_node)
+        con_to_src_vcCount = self.config.vcCount[self.getLayerForNode(src_node)]
+        con_to_dst_vcCount = self.config.vcCount[self.getLayerForNode(dst_node)]
+        self.make_port(ports_node, 0, src_node, con_to_src_vcCount)
+        self.make_port(ports_node, 1, dst_node, con_to_dst_vcCount)
+
+    def getLayerForNode(self, node_id):
+        for z in range(len(self.nodeToLayerAssignementList)):
+            if node_id in self.nodeToLayerAssignementList[z]:
+                return z
+        return -1
 
     def write_connections(self):
         connections_node = ET.SubElement(self.root_node, 'connections')
         con_id = 0
         node_id = 0
-        z = 0
         nodecounts = []
         for (x, y) in zip(self.config.x, self.config.y):
             nodecounts.append(x*y)
         nodecount = sum(nodecounts)
         already_connected = set()
 
+        z = 0
+        self.nodeToLayerAssignementList = []
+        for zi in range(self.config.z):
+            self.nodeToLayerAssignementList.append([])
+            for yi in range(self.config.y[z]):
+                for xi in range(self.config.x[z]):
+                    self.nodeToLayerAssignementList[int(z)].append(node_id)
+                    node_id = node_id + 1
+            z = z + 1
+
+        node_id = 0
+        z = 0
         for zi in self.z_range:
             for yi in self.y_range[z]:
                 for xi in self.x_range[z]:
                     # create Local
                     #print("connecting local from " + str(node_id) + " to " + str(node_id + nodecount))
-                    connection_tuple = (min(node_id, node_id + nodecount), max(node_id , node_id +nodecount))
+                    connection_tuple = (min(node_id, node_id + nodecount), max(node_id , node_id + nodecount))
                     if not connection_tuple in already_connected:
                         con_id = self.make_con(connections_node, con_id, connection_tuple[1], connection_tuple[0])
                         already_connected.add(connection_tuple)

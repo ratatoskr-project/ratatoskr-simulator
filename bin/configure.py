@@ -89,10 +89,19 @@ class Configuration:
         self.bufferDepth = int(config['Hardware']['bufferDepth'])
         self.buffersDepths = config['Hardware']['buffersDepths']
         self.buffersDepths = self.buffersDepths[1:len(self.buffersDepths)-1]
-        self.vcCount = int(config['Hardware']['vcCount'])
+        self.vcCount = config['Hardware']['vcCount']
+        try:
+            self.vcCount = self.vcCount[1:len(self.vcCount) - 1]
+            self.vcCount = self.vcCount.split(',')
+        except Exception:
+            raise
         self.topologyFile = config['Hardware']['topologyFile']
         self.flitSize = int(config['Hardware']['flitSize'])
         self.portNum = int(config['Hardware']['portNum'])
+
+        assert(self.z == len(self.x))
+        assert(self.z == len(self.y))
+        assert(self.z == len(self.vcCount))
 ###############################################################################
 
 
