@@ -447,7 +447,7 @@ class NetworkWriter(Writer):
                             con_id = self.make_con(connections_node, con_id, connection_tuple[1], connection_tuple[0])
                             already_connected.add(connection_tuple)
                         #con_id = self.make_con(connections_node, con_id, node_id, node_id+self.config.x[z])
-                    if zi > 0:  # create Down
+                    if zi > 0 and self.config.z != 1:  # create Down
                         x_finder = np.where(self.x_range[z - 1] == xi)
                         x_index = -1
                         y_finder = np.where(self.y_range[z - 1] == yi)
@@ -467,7 +467,7 @@ class NetworkWriter(Writer):
                                 con_id = self.make_con(connections_node, con_id, connection_tuple[1], connection_tuple[0])
                                 already_connected.add(connection_tuple)
                             #con_id = self.make_con(connections_node, con_id, node_id, dst_id)
-                    if zi < 0.95:  # create Up
+                    if zi < 0.95 and self.config.z != 1:  # create Up
                         x_finder = np.where(self.x_range[z + 1] == xi)
                         x_index = -1
                         y_finder = np.where(self.y_range[z + 1] == yi)
