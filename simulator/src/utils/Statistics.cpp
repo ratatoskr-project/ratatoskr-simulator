@@ -59,9 +59,9 @@ bool Statistics::sample(float sample)
 {
     sampleSum += sample;
     ++sampleSize;
-    if (sampleMin>sample)
+    if (sampleMin > sample)
         sampleMin = sample;
-    if (sampleMax>sample)
+    if (sampleMax < sample)
         sampleMax = sample;
     return true;
 }
