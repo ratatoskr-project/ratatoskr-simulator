@@ -113,6 +113,8 @@ void GlobalReport::reportPerformance(ostream& stream)
 
 void GlobalReport::reportPerformanceCSV(ostream& stream)
 {
+    stream << boost::format("metric, value\n");
+
     float avgFlitLat = latencyFlit.average()/(float) 1000;
     float avgPacketLat = latencyPacket.average()/(float) 1000;
     float avgNetworkLat = latencyNetwork.average()/(float) 1000;
