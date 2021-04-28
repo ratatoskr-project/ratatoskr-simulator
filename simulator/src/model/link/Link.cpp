@@ -97,7 +97,7 @@ void Link::passthrough_thread()
 
         //rawDataOutput->write(outputToFile.c_str(), 3);
         //rawDataOutput->flush();
-        report.issueLinkMatrixUpdate(globalID, currentTransmissionState, previousTransmissionState);
+        //report.issueLinkMatrixUpdate(globalID, currentTransmissionState, previousTransmissionState);
 
         previousTransmissionState = currentTransmissionState;
     }

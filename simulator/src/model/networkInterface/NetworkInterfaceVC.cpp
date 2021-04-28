@@ -123,7 +123,8 @@ void NetworkInterfaceVC::thread()
                 flitPortContainer->portValidOut.write(true);
                 flitPortContainer->portDataOut.write(current_flit);
                 flitPortContainer->portVcOut.write(0);
-                trafficTracer.traceFlit(current_flit);
+                if (globalResources.activateFlitTracing)
+                    trafficTracer.traceFlit(current_flit);
                 creditCounter--;
                 LOG((globalReport.verbose_pe_send_head_flit && current_flit->type==HEAD)
                         || globalReport.verbose_pe_send_flit,
@@ -166,6 +167,7 @@ void NetworkInterfaceVC::receiveFlitFromRouter()
         if ((float) globalResources.synthetic_start_measurement_time<=(time/1000)) {
             globalReport.latencyFlit.sample((float)(time-received_flit->injectionTime)); // evil line of code
             if (received_flit->type==TAIL || received_flit->type==SINGLE) {
+                globalReport.latency.sample((float) (time-received_flit->packet->generationTime));
                 globalReport.latencyPacket.sample((float) (time-received_flit->headFlit->generationTime));
                 globalReport.latencyNetwork.sample((float) (time-received_flit->headFlit->injectionTime));
                 globalReport.undeliveredPackages--;

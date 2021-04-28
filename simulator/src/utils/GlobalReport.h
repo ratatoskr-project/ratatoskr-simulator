@@ -36,6 +36,7 @@ public:
     Statistics latencyNetwork;
     Statistics latencyFlit;
     Statistics latencyPacket;
+    Statistics latency;
 
     //Link state transmission matrixes
     std::map<int, std::vector<long> > linkTransmissionMatrices;

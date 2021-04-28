@@ -28,7 +28,8 @@ GlobalReport::GlobalReport()
         total_power_s(0.0),
         latencyNetwork("network latency"),
         latencyFlit("flit latency"),
-        latencyPacket("packet latency ")
+        latencyPacket("packet latency "),
+        latency("latency")
 {
 }
 
@@ -98,11 +99,13 @@ void GlobalReport::reportPerformance(ostream& stream)
     float avgFlitLat = latencyFlit.average()/(float) 1000;
     float avgPacketLat = latencyPacket.average()/(float) 1000;
     float avgNetworkLat = latencyNetwork.average()/(float) 1000;
+    float avgLat = latency.average()/(float) 1000;
     if (undeliveredPackages < globalResources.nodes.size()||undeliveredPackages<0)
         undeliveredPackages = 0;
     float undeliveredPacketsLatency = undeliveredPackages * globalResources.simulation_time;
     float actualNetworkLat = avgNetworkLat + undeliveredPacketsLatency;
     stream << boost::format("Lost Packets: %3.2f\n")%undeliveredPackages;
+    stream << boost::format("Average latency from Packet generation to Tail flit reception: %3.2f ns.\n")%avgLat;
     stream << boost::format("Average flit latency: %3.2f ns.\n")%avgFlitLat;
     stream << boost::format("Average packet latency: %3.2f ns.\n")%avgPacketLat;
     stream << boost::format("Average network latency: %3.2f ns.\n")%actualNetworkLat;
@@ -110,16 +113,40 @@ void GlobalReport::reportPerformance(ostream& stream)
 
 void GlobalReport::reportPerformanceCSV(ostream& stream)
 {
+    stream << boost::format("metric, value\n");
+
     float avgFlitLat = latencyFlit.average()/(float) 1000;
     float avgPacketLat = latencyPacket.average()/(float) 1000;
     float avgNetworkLat = latencyNetwork.average()/(float) 1000;
+    float avgLat = latency.average()/(float) 1000;
     if (undeliveredPackages < globalResources.nodes.size() || undeliveredPackages < 0)
         undeliveredPackages = 0;
     float undeliveredPacketsLatency = undeliveredPackages * globalResources.simulation_time;
     float actualNetworkLat = avgNetworkLat + undeliveredPacketsLatency;
+    stream << boost::format("avgLat, %2.3f\n")%avgLat;
     stream << boost::format("avgFlitLat, %2.3f\n")%avgFlitLat;
     stream << boost::format("avgPacketLat, %2.3f\n")%avgPacketLat;
     stream << boost::format("avgNetworkLat, %2.3f\n")%actualNetworkLat;
+
+    float wcFlitLat = latencyFlit.max()/(float) 1000;
+    float bcFlitLat = latencyFlit.min()/(float) 1000;
+    stream << boost::format("wcFlitLat, %2.3f\n")%wcFlitLat;
+    stream << boost::format("bcFlitLat, %2.3f\n")%bcFlitLat;
+
+    float wcPacketLat = latencyPacket.max()/(float) 1000;
+    float bcPacketLat = latencyPacket.min()/(float) 1000;
+    stream << boost::format("wcPacketLat, %2.3f\n")%wcPacketLat;
+    stream << boost::format("bcPacketLat, %2.3f\n")%bcPacketLat;
+
+    float wcNetworkLat = latencyNetwork.max()/(float) 1000;
+    float bcNetworkLat = latencyNetwork.min()/(float) 1000;
+    stream << boost::format("wcNetworkLat, %2.3f\n")%wcNetworkLat;
+    stream << boost::format("bcNetworkLat, %2.3f\n")%bcNetworkLat;
+
+    float wcLat = latency.max()/(float) 1000;
+    float bcLat = latency.min()/(float) 1000;
+    stream << boost::format("wcLat, %2.3f\n")%wcLat;
+    stream << boost::format("bcLat, %2.3f\n")%bcLat;
 }
 
 void GlobalReport::issueRoutingCalculation(int id)
@@ -335,18 +362,18 @@ void GlobalReport::reportAllRoutersUsageHist()
     int num_routers = routers_ids.size();
     for (unsigned int i = 0; i<num_routers; ++i) {
         int router_id = routers_ids[i];
-        if (router_id <= numSimulatedRouters) {
+        if (router_id < numSimulatedRouters) {
             std::string csvFileName;
 
-            int isFolderCreated = system("mkdir -p ./VCUsage");
+            int isFolderCreated = system(std::string("mkdir -p " + globalResources.outputDirectory + "/VCUsage/").c_str());
             if (isFolderCreated!=0) {
                 std::cerr << "VCUsage folder was not created!" << std::endl;
                 std::exit(EXIT_FAILURE);
             }
-            csvFileName = "VCUsage/"+std::to_string(router_id)+".csv";
+            csvFileName = globalResources.outputDirectory + "/VCUsage/"+std::to_string(router_id)+".csv";
             reportVCUsageHist(csvFileName, router_id);
 
-            isFolderCreated = system("mkdir -p ./BuffUsage");
+            isFolderCreated = system(std::string("mkdir -p " + globalResources.outputDirectory + "/BuffUsage/").c_str());
             if (isFolderCreated!=0) {
                 std::cerr << "VCUsage folder was not created!" << std::endl;
                 std::exit(EXIT_FAILURE);
@@ -357,7 +384,7 @@ void GlobalReport::reportAllRoutersUsageHist()
                     int dir_int = globalResources.nodes[router_id].getDirOfConPos(conPos);
                     std::string dir_str = DIR::toString(globalResources.nodes[router_id].getDirOfConPos(conPos));
                     boost::trim(dir_str);
-                    csvFileName = "BuffUsage/"+std::to_string(router_id)+"_"+dir_str+".csv";
+                    csvFileName = globalResources.outputDirectory + "/BuffUsage/" + std::to_string(router_id) + "_" + dir_str + ".csv";
                     reportBuffPerVCUsageHist(csvFileName, router_id, dir_int);
                 }
             }
