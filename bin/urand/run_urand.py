@@ -41,7 +41,7 @@ def main():
     """ Run the script """
     os.system('cp ../config.xml config/config.xml')
     os.system('cp ../network.xml config/network.xml')
-    os.system('cp ../../simulator/sim .')
+    os.system('cp /home/joseph/tmp/ratatoskr-simulator/simulator/sim .')
     config = Configuration('../config.ini')
     results = begin_all_sims(config)
     save_results(results, 'rawResults.pkl')
@@ -143,7 +143,7 @@ def run_indivisual_sim(simdir, basedir):
 ###############################################################################
 
 
-def get_latencies(latencies_results_file):
+def get_performances(results_file):
     """
     Read the resulting latencies from the csv file.
 
@@ -153,19 +153,24 @@ def get_latencies(latencies_results_file):
     Return:
         - A list of the filt, packet and network latencies.
     """
-    latencies = []
-    try:
-        with open(latencies_results_file, newline='') as f:
-            spamreader = csv.reader(f, delimiter=' ', quotechar='|')
-            for row in spamreader:
-                latencies.append(row[1])
-    except Exception:
-        # Add dummy values to latencies, -1.
-        latencies.append(-1)
-        latencies.append(-1)
-        latencies.append(-1)
+    performance_report = {}
+    csv_data = pd.read_csv(results_file)
+    for index, row in csv_data.iterrows():
+            performance_report[row[0]] = row[1]
+    return performance_report
+    #latencies = []
+    #try:
+    #    with open(latencies_results_file, newline='') as f:
+    #        spamreader = csv.reader(f, delimiter=' ', quotechar='|')
+    #        for row in spamreader:
+    #            latencies.append(row[1])
+    #except Exception:
+    #    # Add dummy values to latencies, -1.
+    #    latencies.append(-1)
+    #    latencies.append(-1)
+    #    latencies.append(-1)
 
-    return(latencies)
+    #return(latencies)
 ###############################################################################
 
 
@@ -216,6 +221,15 @@ def begin_all_sims(config):
     latenciesFlit = -np.ones((len(injectionRates), config.restarts))
     latenciesPacket = -np.ones((len(injectionRates), config.restarts))
     latenciesNetwork = -np.ones((len(injectionRates), config.restarts))
+    latencies = -np.ones((len(injectionRates), config.restarts))
+    bcLatency = -np.ones((len(injectionRates), config.restarts))
+    wcLatency = -np.ones((len(injectionRates), config.restarts))
+    bcPacketLatency = -np.ones((len(injectionRates), config.restarts))
+    wcPacketLatency = -np.ones((len(injectionRates), config.restarts))
+    bcNetworkLatency = -np.ones((len(injectionRates), config.restarts))
+    wcNetworkLatency = -np.ones((len(injectionRates), config.restarts))
+    bcFlitLatency = -np.ones((len(injectionRates), config.restarts))
+    wcFlitLatency = -np.ones((len(injectionRates), config.restarts))
 
     # Run the full simulation (for all injection rates).
     injIter = 0
@@ -231,10 +245,20 @@ def begin_all_sims(config):
         # Run the simulation several times for each injection rate.
         for restart in range(config.restarts):
             currentSimdir = 'sim' + str(restart)
-            lat = get_latencies(currentSimdir + '/report_Performance.csv')
-            latenciesFlit[injIter, restart] = lat[0]
-            latenciesPacket[injIter, restart] = lat[1]
-            latenciesNetwork[injIter, restart] = lat[2]
+            lat = get_performances(currentSimdir + '/report_Performance.csv')
+            latenciesFlit[injIter, restart] = lat["avgFlitLat"]
+            latenciesPacket[injIter, restart] = lat["avgPacketLat"]
+            latenciesNetwork[injIter, restart] = lat["avgNetworkLat"]
+            latencies[injIter, restart] = lat["avgLat"]
+            bcLatency[injIter, restart] = lat["bcLat"]
+            wcLatency[injIter, restart] = lat["wcLat"]
+            bcPacketLatency[injIter, restart] = lat["bcPacketLat"]
+            wcPacketLatency[injIter, restart] = lat["wcPacketLat"]
+            bcNetworkLatency[injIter, restart] = lat["bcNewtorkLat"]
+            wcNetworkLatency[injIter, restart] = lat["wcNetworkLat"]
+            bcFlitLatency[injIter, restart] = lat["bcFlitLat"]
+            wcFlitLatency[injIter, restart] = lat["wcFlitLat"]
+
             VCUsage_run = combine_VC_hists(currentSimdir + '/VCUsage')
             if VCUsage_run is not None:
                 for ix, layer_df in enumerate(VCUsage_run):
@@ -269,6 +293,7 @@ def begin_all_sims(config):
     results = {'latenciesFlit': latenciesFlit,
                'latenciesNetwork': latenciesNetwork,
                'latenciesPacket': latenciesPacket,
+               'latencies' : latencies,
                'injectionRates': injectionRates,
                'VCUsage': VCUsage,
                'BuffUsage': BuffUsage}
